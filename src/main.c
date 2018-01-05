@@ -41,6 +41,8 @@ static void updateCamera(fix32 x, fix32 y);
 // sprites structure (pointer of Sprite)
 Sprite* sprites[3];
 
+fix32 nuvemx;
+
 fix32 camposx;
 fix32 camposy;
 fix32 posx;
@@ -69,23 +71,23 @@ int main()
     VDP_setScreenWidth320();
 
     // init SFX
-    SND_setPCM_XGM(SFX_JUMP, sonic_jump_sfx, sizeof(sonic_jump_sfx));
-    SND_setPCM_XGM(SFX_ROLL, sonic_roll_sfx, sizeof(sonic_roll_sfx));
-    SND_setPCM_XGM(SFX_STOP, sonic_stop_sfx, sizeof(sonic_stop_sfx));
+    //SND_setPCM_XGM(SFX_JUMP, sonic_jump_sfx, sizeof(sonic_jump_sfx));
+    //SND_setPCM_XGM(SFX_ROLL, sonic_roll_sfx, sizeof(sonic_roll_sfx));
+    //SND_setPCM_XGM(SFX_STOP, sonic_stop_sfx, sizeof(sonic_stop_sfx));
     // start music
-    SND_startPlay_XGM(sonic_music);
+    //SND_startPlay_XGM(sonic_music);
 
     // init sprites engine
-    SPR_init(16, 256, 256);
+    SPR_init(127, 0, 256);
 
     // set all palette to black
     VDP_setPaletteColors(0, (u16*) palette_black, 64);
 
     // load background
     ind = TILE_USERINDEX;
-    //VDP_drawImageEx(PLAN_B, &bgb_image, TILE_ATTR_FULL(PAL0, FALSE, FALSE, FALSE, ind), 0, 0, FALSE, TRUE);
+    VDP_drawImageEx(PLAN_B, &bgb_image, TILE_ATTR_FULL(PAL0, FALSE, FALSE, FALSE, ind), 0, 0, FALSE, TRUE);
     ind += bgb_image.tileset->numTile;
-    //VDP_drawImageEx(PLAN_A, &bga_image, TILE_ATTR_FULL(PAL1, FALSE, FALSE, FALSE, ind), 0, 0, FALSE, TRUE);
+    VDP_drawImageEx(PLAN_A, &bga_image, TILE_ATTR_FULL(PAL1, FALSE, FALSE, FALSE, ind), 0, 0, FALSE, TRUE);
     ind += bga_image.tileset->numTile;
 
     // VDP process done, we can re enable interrupts
@@ -103,22 +105,22 @@ int main()
 
     enemyPosx[0] = FIX32(48);
     enemyPosy[0] = FIX32(164);
-    enemyPosx[1] = FIX32(300);
+    enemyPosx[1] = FIX32(48);
     enemyPosy[1] = FIX32(84);
     enemyXorder[0] = 1;
     enemyXorder[1] = -1;
 
     // init scrolling
-    //updateCamera(FIX32(0), FIX32(0));
+    updateCamera(FIX32(0), FIX32(0));
 
     // init sonic sprite
     sprites[0] = SPR_addSprite(&mecha_sprite, fix32ToInt(posx - camposx), fix32ToInt(posy - camposy), TILE_ATTR(PAL2, TRUE, FALSE, FALSE));
-    // init enemies sprites
-    sprites[1] = SPR_addSprite(&enemies_sprite, fix32ToInt(enemyPosx[0] - camposx), fix32ToInt(enemyPosy[0] - camposy), TILE_ATTR(PAL3, TRUE, FALSE, FALSE));
+    // init enemies sprites    
+    sprites[1] = SPR_addSprite(&enemies_sprite, fix32ToInt(enemyPosx[0] - camposx), fix32ToInt(enemyPosy[0] - camposy), TILE_ATTR(PAL3, TRUE, FALSE, FALSE));    
     sprites[2] = SPR_addSprite(&enemies_sprite, fix32ToInt(enemyPosx[1] - camposx), fix32ToInt(enemyPosy[1] - camposy), TILE_ATTR(PAL3, TRUE, FALSE, FALSE));
     // select enemy for each sprite
     SPR_setAnim(sprites[1], 1);
-    SPR_setAnim(sprites[2], 0);
+    SPR_setAnim(sprites[2], 1);
     SPR_update();
 
     // prepare palettes
@@ -202,6 +204,8 @@ static void updatePhysic()
     px_scr = posx - camposx;
     py_scr = posy - camposy;
 
+    nuvemx -= FIX32(5.0);
+
     // calculate new camera position
     if (px_scr > FIX32(240)) npx_cam = posx - FIX32(240);
     else if (px_scr < FIX32(40)) npx_cam = posx - FIX32(40);
@@ -217,7 +221,7 @@ static void updatePhysic()
     else if (npy_cam > FIX32(100)) npy_cam = FIX32(100);
 
     // set camera position
-    //updateCamera(npx_cam, npy_cam);
+    updateCamera(npx_cam, npy_cam);
 
     // set sprites position
     SPR_setPosition(sprites[0], fix32ToInt(posx - camposx), fix32ToInt(posy - camposy));
@@ -252,21 +256,13 @@ static void updateAnim()
     }
 
     // enemies
-    if (enemyXorder[1] > 0) SPR_setHFlip(sprites[2], TRUE);
-    else SPR_setHFlip(sprites[2], FALSE);
+    //if (enemyXorder[1] > 0) SPR_setHFlip(sprites[2], TRUE);
+    //else SPR_setHFlip(sprites[2], FALSE);
 }
 
 static void updateCamera(fix32 x, fix32 y)
 {
-    if ((x != camposx) || (y != camposy))
-    {
-        camposx = x;
-        camposy = y;
-        VDP_setHorizontalScroll(PLAN_A, fix32ToInt(-camposx));
-        VDP_setHorizontalScroll(PLAN_B, fix32ToInt(-camposx) >> 3);
-        VDP_setVerticalScroll(PLAN_A, fix32ToInt(camposy));
-        VDP_setVerticalScroll(PLAN_B, fix32ToInt(camposy) >> 3);
-    }
+    VDP_setHorizontalScroll(PLAN_A, fix32ToInt(nuvemx));
 }
 
 
